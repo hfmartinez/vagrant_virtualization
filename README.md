@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project provides a RESTful API for managing student records using FastAPI and MySQL. The API supports CRUD operations to create, read, update, and delete student information.
+This project provides a RESTful API for managing student records using FastAPI and MySQL. All configurations and provisioning are automated with Ansible and Vagrant. The API supports CRUD operations to create, read, update, and delete student information.
 
 ## Prerequisites
 
