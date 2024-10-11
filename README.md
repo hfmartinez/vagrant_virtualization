@@ -14,6 +14,9 @@ Before you begin, ensure you have the following installed:
 
 ## Steps to Run
 
+> [!IMPORTANT]
+> Ensure that the Vagrant machine has access to the internet for package installations.
+
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/yourusername/student-management-api.git

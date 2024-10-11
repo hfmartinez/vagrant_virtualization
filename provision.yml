@@ -2,13 +2,15 @@
 - name: Provision the server
   hosts: all
   become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
 
   tasks:
     - name: Update the system
       apt:
         update_cache: yes
 
-    - name: Install Python and MySQL dependencies
+    - name: Install essential packages
       apt:
         name:
           - python3
@@ -17,16 +19,25 @@
           - python3-dev
           - default-libmysqlclient-dev
           - build-essential
+          - pkg-config
+          - libmysqlclient-dev
         state: present
 
     - name: Install Python MySQL client
       pip:
-        name: mysqlclient
+        name:
+          - mysqlclient
 
     - name: Ensure MySQL is running
       service:
         name: mysql
         state: started
+
+    - name: Wait for MySQL to become available
+      wait_for:
+        port: 3306
+        delay: 10
+        timeout: 30
 
     - name: Set MySQL root password
       mysql_user:
@@ -34,26 +45,66 @@
         password: your_root_password
         host: localhost
         state: present
-
-    - name: Create a new MySQL user
-      mysql_user:
-        name: "{{ lookup('env', 'DB_USER') }}"
-        password: "{{ lookup('env', 'DB_PASSWORD') }}"
-        host: localhost
-        state: present
+        login_user: root
+        login_password: "your_root_password"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
 
     - name: Create database and load initial data
       mysql_db:
         name: universidad
         state: present
+        login_user: root
+        login_password: "your_root_password"
 
     - name: Load initial data from SQL file
       mysql_db:
         name: universidad
         state: import
         target: /vagrant/init_data.sql
+        login_user: root
+        login_password: "your_root_password"
 
-    - name: Copy .env file
+    - name: Create application directory
+      file:
+        path: /home/vagrant/app
+        state: directory
+        mode: "0755"
+
+    - name: Copy application code
       copy:
-        src: /vagrant/app/.env
-        dest: /home/vagrant/app/.env
+        src: ./app/
+        dest: /home/vagrant/app/
+
+    - name: Install Python dependencies from requirements.txt
+      pip:
+        requirements: /home/vagrant/app/requirements.txt
+
+    - name: Create systemd service file for FastAPI
+      copy:
+        dest: /etc/systemd/system/fastapi.service
+        content: |
+          [Unit]
+          Description=FastAPI Application
+          After=network.target
+
+          [Service]
+          User=vagrant
+          WorkingDirectory=/home/vagrant/app
+          ExecStart=/usr/local/bin/uvicorn main:app --host 0.0.0.0 --port 5500
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd to recognize the new service
+      command: systemctl daemon-reload
+
+    - name: Enable FastAPI service to start on boot
+      systemd:
+        name: fastapi
+        enabled: yes
+
+    - name: Start FastAPI service
+      systemd:
+        name: fastapi
+        state: started

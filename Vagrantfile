@@ -1,14 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-20.04-arm64" # replace if necessary
 
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "provision.yml"
+  config.vm.box = "bento/ubuntu-22.04-arm64" # replace if necessary
+
+  config.vm.define :server do |server|
+    server.vm.network :private_network, ip: "192.168.100.4"
+    server.vm.network "forwarded_port", guest: 5500, host: 5500 
+    server.vm.hostname = "server"
+
+    server.vm.provision "ansible" do |ansible|
+      ansible.playbook = "provision.yml"
+    end
   end
-
-  config.vm.network :private_network, ip: "192.168.100.4"
-  config.vm.network "forwarded_port", guest: 8000, host: 8000 
 
   #replace if necessary
   config.vm.provider "vmware_desktop" do |v|
