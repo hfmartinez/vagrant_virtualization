@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+
+# Virtual environment
+venv/
+env/
+.env
+.vagrant
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# MySQL files
+*.sql
+
+# VS Code settings
+.vscode/
+
+# Logs
+*.log
+
+# Local configuration files
+*.local
+
+# System files
+.DS_Store
+Thumbs.db
