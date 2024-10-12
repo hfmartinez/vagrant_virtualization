@@ -11,18 +11,31 @@ Vagrant.configure("2") do |config|
   app_dir = "/home/vagrant/app"
   app_host = "192.168.100.4"
 
+  # Provisioning method (choose between 'ansible' or 'shell')
+  provisioning_method = "shell" # Change to "ansible" to use Ansible provisioning
+
   # Definition of the database VM
   config.vm.define :db do |db|
     db.vm.network :private_network, ip: db_host
     db.vm.hostname = "db"
 
-    db.vm.provision "ansible" do |ansible|
-      ansible.playbook = "provision.yml"
-      ansible.extra_vars = {
-        db_root_password: db_root_password,
-        db_name: db_name,
-        app_host: app_host
-      }
+    if provisioning_method == "ansible"
+      db.vm.provision "ansible" do |ansible|
+        ansible.playbook = "provision.yml"
+        ansible.extra_vars = {
+          db_root_password: db_root_password,
+          db_name: db_name,
+          app_host: app_host
+        }
+      end
+    elsif provisioning_method == "shell"
+      db.vm.provision "shell", inline: <<-SHELL
+        #!/bin/bash
+        export DB_ROOT_PASSWORD="#{db_root_password}"
+        export DB_NAME="#{db_name}"
+        export APP_HOST="#{app_host}"
+        bash /vagrant/provision.sh
+      SHELL
     end
   end
 
@@ -32,14 +45,25 @@ Vagrant.configure("2") do |config|
     server.vm.hostname = "server"
     server.vm.network "forwarded_port", guest: 5500, host: 5500 
 
-    server.vm.provision "ansible" do |ansible|
-      ansible.playbook = "provision.yml"
-      ansible.extra_vars = {
-        db_host: db_host,
-        app_dir: app_dir,
-        db_root_password: db_root_password,
-        db_name: db_name
-      }
+    if provisioning_method == "ansible"
+      server.vm.provision "ansible" do |ansible|
+        ansible.playbook = "provision.yml"
+        ansible.extra_vars = {
+          db_host: db_host,
+          app_dir: app_dir,
+          db_root_password: db_root_password,
+          db_name: db_name
+        }
+      end
+    elsif provisioning_method == "shell"
+      server.vm.provision "shell", inline: <<-SHELL
+        #!/bin/bash
+        export DB_HOST="#{db_host}"
+        export APP_DIR="#{app_dir}"
+        export DB_ROOT_PASSWORD="#{db_root_password}"
+        export DB_NAME="#{db_name}"
+        bash /vagrant/provision.sh
+      SHELL
     end
   end
 
