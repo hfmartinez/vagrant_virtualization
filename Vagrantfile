@@ -4,17 +4,46 @@ Vagrant.configure("2") do |config|
 
   config.vm.box = "bento/ubuntu-22.04-arm64" # replace if necessary
 
-  config.vm.define :server do |server|
-    server.vm.network :private_network, ip: "192.168.100.4"
-    server.vm.network "forwarded_port", guest: 5500, host: 5500 
-    server.vm.hostname = "server"
+  # Database credentials
+  db_root_password = "your_root_password"
+  db_name = "universidad"
+  db_host = "192.168.100.6"
+  app_dir = "/home/vagrant/app"
+  app_host = "192.168.100.4"
 
-    server.vm.provision "ansible" do |ansible|
+  # Definition of the database VM
+  config.vm.define :db do |db|
+    db.vm.network :private_network, ip: db_host
+    db.vm.hostname = "db"
+
+    db.vm.provision "ansible" do |ansible|
       ansible.playbook = "provision.yml"
+      ansible.extra_vars = {
+        db_root_password: db_root_password,
+        db_name: db_name,
+        app_host: app_host
+      }
     end
   end
 
-  #replace if necessary
+  # Definition of the FastAPI application VM
+  config.vm.define :server do |server|
+    server.vm.network :private_network, ip: app_host
+    server.vm.hostname = "server"
+    server.vm.network "forwarded_port", guest: 5500, host: 5500 
+
+    server.vm.provision "ansible" do |ansible|
+      ansible.playbook = "provision.yml"
+      ansible.extra_vars = {
+        db_host: db_host,
+        app_dir: app_dir,
+        db_root_password: db_root_password,
+        db_name: db_name
+      }
+    end
+  end
+
+  # Replace if necessary
   config.vm.provider "vmware_desktop" do |v|
     v.memory = 2048           # Allocate 2GB of RAM
     v.cpus = 2                # Allocate 2 CPUs
