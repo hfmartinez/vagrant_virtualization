@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
   app_host = "192.168.100.4"
 
   # Provisioning method (choose between 'ansible' or 'shell')
-  provisioning_method = "shell" # Change to "ansible" to use Ansible provisioning
+  provisioning_method = "ansible" # Change to "ansible" to use Ansible provisioning
 
   # Definition of the database VM
   config.vm.define :db do |db|
