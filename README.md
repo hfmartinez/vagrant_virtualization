@@ -37,12 +37,13 @@ Before you begin, ensure you have the following installed:
 3. **Run Vagrant**
 
 ```bash
+   #Run this in the root folder
    vagrant up
 ```
 
 4.  **Access the API**
 
-- Once the setup is complete, the API will be accessible at `http://localhost:8000`
+- Once the setup is complete, the API will be accessible at `http://localhost:5500`
 
 5.  **Stopping the Virtual Machine**
 
