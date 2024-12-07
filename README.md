@@ -19,8 +19,9 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/student-management-api.git
-   cd student-management-api/app
+   git clone https://github.com/hfmartinez/vagrant_virtualization.git
+   
+   cd vagrant_virtualization/app
    ```
 2. **Update Database Credentials**
 
